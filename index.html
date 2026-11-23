@@ -175,7 +175,33 @@ https://docs.google.com/spreadsheets/d/1S84ahxIjF04b9E_zC26NTbHPWHSTrMMI/edit?us
 
 				<!-- Footer -->
 					<footer id="footer">
-						
+						<section>
+							<h3>Message me</h3>
+							<form id="contact-form" method="post" action="#">
+								<div class="fields">
+									<div class="field">
+										<label for="cf-name">Name</label>
+										<input type="text" name="name" id="cf-name" autocomplete="name" required maxlength="100" />
+									</div>
+									<div class="field">
+										<label for="cf-email">Your email</label>
+										<input type="email" name="email" id="cf-email" autocomplete="email" required maxlength="200" />
+									</div>
+									<div class="field">
+										<label for="cf-message">Message</label>
+										<textarea name="message" id="cf-message" rows="4" required maxlength="3000"></textarea>
+									</div>
+									<div class="field" style="position:absolute;left:-10000px" aria-hidden="true">
+										<label for="cf-website">Leave this empty</label>
+										<input type="text" name="_honey" id="cf-website" tabindex="-1" autocomplete="off" />
+									</div>
+								</div>
+								<ul class="actions">
+									<li><input type="submit" value="Send Message" id="cf-send" /></li>
+								</ul>
+								<p id="cf-status" role="status" aria-live="polite"></p>
+							</form>
+						</section>
 						<section class="split contact">
 							<section class="alt">
 								<h3>Address</h3>
@@ -184,11 +210,11 @@ https://docs.google.com/spreadsheets/d/1S84ahxIjF04b9E_zC26NTbHPWHSTrMMI/edit?us
 							</section>
 							<section>
 								<h3>Phone</h3>
-								<p><a href="#">(000) 000-0000</a></p>
+								<p>Available on request</p>
 							</section>
 							<section>
 								<h3>Email</h3>
-								<p><a href="#">_@_.com</a></p>
+								<p>Please use the message box</p>
 							</section>
 							<section>
 								<h3>Social</h3>
@@ -215,6 +241,43 @@ https://docs.google.com/spreadsheets/d/1S84ahxIjF04b9E_zC26NTbHPWHSTrMMI/edit?us
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
+
+			<!-- Message box: sends via FormSubmit. The destination address is assembled in the browser so it never appears in the page source. -->
+			<script>
+				(function () {
+					var form = document.getElementById('contact-form');
+					if (!form) return;
+					var status = document.getElementById('cf-status');
+					var btn = document.getElementById('cf-send');
+					var p = ['jakuagwu', 'portfolio', 'gmail', 'com'];
+					var to = p[0] + '+' + p[1] + String.fromCharCode(64) + p[2] + '.' + p[3];
+					form.addEventListener('submit', function (e) {
+						e.preventDefault();
+						if (form.elements['_honey'].value) return; // spam bot filled the hidden field
+						var data = {
+							name: form.elements['name'].value.trim(),
+							email: form.elements['email'].value.trim(),
+							message: form.elements['message'].value.trim(),
+							_subject: 'Portfolio message from ' + form.elements['name'].value.trim(),
+							_template: 'table',
+							_captcha: 'false'
+						};
+						if (!data.name || !data.email || !data.message) { status.textContent = 'Please fill in your name, email and message.'; return; }
+						btn.disabled = true; status.textContent = 'Sending\u2026';
+						fetch('https://formsubmit.co/ajax/' + encodeURIComponent(to), {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+							body: JSON.stringify(data)
+						}).then(function (r) { return r.json().catch(function () { return {}; }); })
+						.then(function (res) {
+							if (String(res.success) === 'true') { form.reset(); status.textContent = 'Thank you \u2014 your message has been sent. I\u2019ll reply by email.'; }
+							else { status.textContent = 'Sorry, your message could not be sent just now. Please try again later.'; }
+						})
+						.catch(function () { status.textContent = 'Sorry, your message could not be sent. Please check your connection and try again.'; })
+						.then(function () { btn.disabled = false; });
+					});
+				})();
+			</script>
 
 	</body>
 </html>
